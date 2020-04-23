@@ -64,10 +64,27 @@ Sometimes we mediate this integration in interesting ways.
   - connecting spreadsheets to visualizations (in some improved ways???)
 
 ## what should be tested
- - component models contain the expected results after creation
- - API calls to all endpoints are correctly formatted
- - repeated reads work after changes in the 'remote' data?
- - model edits causes API writes
- - component creation does not cause API writes
- - writes transmit between two sheet objects with the same remote sheet
- - data written to a remote sheet then read again is identical 
+ - [x] conversion from numerical coordinates to A1 notation
+ - [ ] component models contain the expected results after creation
+ - [ ] API calls to all endpoints are correctly formatted
+ - [ ] repeated reads work after changes in the 'remote' data?
+ - [ ] model edits causes API writes
+ - [ ] component creation does not cause API writes
+ - [ ] writes transmit between two sheet objects with the same remote sheet
+ - [ ] data written to a remote sheet then read again is identical 
+
+### automatically reading sheets on change
+It looks like I will have the implement the sheets -> nexus path with manual polling.
+This requires some pretty robust machinery that reports remote changes, issues re-reads from relevant components, and doesn't issue fresh ones if any are still in progress.
+This last part is a promise throttler.
+There's a fair amount of work on how to implement such a mechanism well, e.g. https://github.com/cujojs/when/blob/master/docs/api.md#whenguard
+We won't necessarily use a powerful implementation like that, but it may be inspiring.
+We also need a diff function to check that a pinging spreadsheet has actually changed relative to the local I have.
+There's a fluid.model.diff function (see: https://github.com/amb26/infusion/blob/FLUID-6145/src/framework/core/js/DataBinding.js#L1584 )
+For reporting, we may want to use the google drive push notification API, where we can provide a public HTTP endpoint that gets notified on updates (see: https://developers.google.com/drive/api/v3/reference/changes/watch ).
+
+So directions to go right now
+     . create a public HTTP endpoint with kettle, maybe expose this at nexus.tcher.tech
+       this endpoint should trigger a re-read of all relevant, instantiated sheets
+     . create a local nexus and a client page that interact, following A's visibleNexus approach
+     . set up more comprehensive tests
