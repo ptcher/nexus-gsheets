@@ -9,7 +9,7 @@ jqUnit.test('Coordinate conversion gives expected results', function () {
     var i = 1;
     for (var input in tests) {
         var result = coordToA1(parseInt(input), i);
-        jqUnit.assertEquals('Conversion result equals expected', result, tests[input] + i.toString());
+        jqUnit.assertEquals('Conversion result equals expected', tests[input] + i.toString(), result);
         i++;
     }
 });
