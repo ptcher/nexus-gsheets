@@ -19,17 +19,19 @@ var columnNumberToLetter = function(int) {
     /*
      * The A1 column notation is not a conventional positional numeral system, 
      *  i.e. it is not base 26 with 0-p substituted for A-Z.
-     * It does not have a zero: 1-26 are written as A-Z, but 27 is AA, 28 is AB, etc.
-     * In this case, A0 is equal to Z, B0 is equal to AZ, and so on.
-     * In fact, all base 26 numbers can be converted into A1 column numbers by replacing zeroes with Z and decrementing the previous 'digit'.
-     * 
-     *  TODO: explain why this makes sense
+     * It does not have a zero, and it has a digit with the value 26 (Z).
+     * Both positional numeral systems and the A1 column counting system are read from right to left as
+     *      d0 + base*d1 + base^2*d2 + base^3*d3 ... base^n*dn
+     * But since A1 columns have no zero element, where we would conventionally write A0, we write Z instead, then AA.
+     * Therefore, we count in the regular positional procedure, but skip numbers with zeroes.
+     * We can rewrite numbers with zeroes like so: A0 is equal to Z, B0 is equal to AZ, C00 is equal to BYZ, C0Y is equal to BZY, and so on.
+     * Using this equivalence, all base 26 numbers can be converted into A1 column numbers by replacing zeroes with Z and decrementing the previous 'digit'.
      */
     // convert to base 26
     var togo = int.toString(26);
     // rotate to use alphabetical symbols
     togo = base26ToAlphabetical(togo);
-    // iteratively replace occurrences of ?0 with Z
+    // iteratively replace occurrences of ?0 with predecessor(?)Z
     while (true) {
         var zeroIndex = togo.indexOf('0');
         if (zeroIndex === -1) {
