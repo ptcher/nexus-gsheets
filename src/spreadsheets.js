@@ -17,7 +17,7 @@ module.exports = spreadsheets;
 // This logging function is used to trigger a breakpoint and get component tree state
 spreadsheets.debug = function(...messages) {
     console.log(messages);
-}
+};
 
 /**
  * component for reading and writing entire spreadsheets, located based on their id/URL
@@ -45,28 +45,32 @@ fluid.defaults('spreadsheets.spreadsheet', {
     // TODO: where is the change source stored?
     modelListeners: {
         '*': {
-            func: 'spreadsheets.spreadsheet.setRemoteContent',
+            funcName: 'spreadsheets.spreadsheet.setRemoteContent',
             args: ['{that}', '{apiClient}', '{change}.path.0', '{change}.value'],
-            // FIXME: currently, this model relay doesn't work as intended. 
-            // It should systematically exclude mutations coming from reads. 
-            // Can those be associated with a particular invoker on the apiClient sub-component or locally? 
-            // The kludge I can make right now is to check the written value against the last-read value.
-            // excludeSource: 'init' does not seem to be what I want, because multiple reads could happen over the component life cycle.
+            // TODO: test this 
+            excludeSource: 'getRemoteContent'
         }
     }
 });
 
-// TODO: refactor this messy function
+// TODO: refactor this messy function, ideally using promise chains, so I can just write the things in getRemoteContent as multiple simple functions
 // TODO: I wonder if I can more declaratively specify
 //   which api call with which body
 //   how to decode and extract data
 //   how to fill the model
 // and whether that has value for the design
+// TODO: it looks like I will have the implement the sheets -> nexus path with manual polling
+// needs a promise throttler htat tries to guarantee requests being issued on a schedule, not issuing resh ones if one is istll in progress.
+// there's a standard, https://github.com/cujojs/when/blob/master/docs/api.md#whenguard
+// don't necessarily use this, but it may be inspiring
+// possibly the Drive API could help me diff, but for now I can just use array diffing
+// TODO: rename to something like remoteSpreadsheetAvatar
+//       indicate clearly that this is the necessary "internal endpoint" that allows you to Infusion-ly interact with a spreadsheet "as if it were the same"
 spreadsheets.spreadsheet.getRemoteContent = function(that, apiClient) {
     var metadataPromise = apiClient.getSpreadsheet(apiClient, that.options.spreadsheetId);
-    var requests = [];
     metadataPromise.then(function(res) {
-        fluid.each(res.data.sheets, function(sheetObject) {
+        var requests = [];
+        fluid.each(res.data.sheets, function (sheetObject) {
             var {title} = sheetObject.properties;
             var {columnCount, rowCount} = sheetObject.properties.gridProperties;
             requests.push({title, columnCount, rowCount});
@@ -84,7 +88,8 @@ spreadsheets.spreadsheet.getRemoteContent = function(that, apiClient) {
         valuePromise.then(function(res) {
             fluid.each(res.data.valueRanges, function({range, values}) {
                 var sheetName = range.split('!')[0];
-                that.applier.change(sheetName, values);
+                // TODO: add source reference here
+                that.applier.change(sheetName, values, 'ADD', 'getRemoteContent');
             });
         });
     }, function(error) {
@@ -98,62 +103,7 @@ spreadsheets.spreadsheet.getRemoteContent = function(that, apiClient) {
  * @param {Number} row The 1-indexed row number.
  * @returns {String} The coordinate in A1 notation.
  */
-spreadsheets.coordToA1 = function(column, row) {
-    return numberToColumn(column) + row;
-};
-
-var numberToColumn = function(int) {
-    var togo = int - 1;
-    togo = togo.toString(26);
-    togo = successorBase27(togo);
-    togo = shiftToAlphabetical(togo);
-    return togo;
-};
-
-var successorBase27 = function(str) {
-    var togo;
-    for (i = str.length - 1; i >= 0; i--) {
-        var char = str[i];
-        if (char !== 'q') {
-            togo = str.substring(0, i) + (parseInt(char, 26) + 1).toString(27) + str.substring(i + 1)
-            return togo;
-        } else {
-            togo = str.substring(0, i) + '0' + str.substring(i + 1);
-        }
-    }
-    return '1' + togo;
-};
-
-var shiftToAlphabetical = function(str) {
-    return str.replace(/\w/g, (char) => ({ 
-        1: 'A', 
-        2: 'B',
-        3: 'C',
-        4: 'D',
-        5: 'E', 
-        6: 'F', 
-        7: 'G',
-        8: 'H',
-        9: 'I', 
-        a: 'J', 
-        b: 'K',
-        c: 'L', 
-        d: 'M',
-        e: 'N',
-        f: 'O', 
-        g: 'P', 
-        h: 'Q',
-        i: 'R', 
-        j: 'S', 
-        k: 'T',
-        l: 'U', 
-        m: 'V',
-        n: 'W',
-        o: 'X',
-        p: 'Y', 
-        q: 'Z' 
-    })[char]);
-};
+spreadsheets.coordToA1 = coordToA1;
 
 /**
  * Send a new value for the component model to the remote spreadsheet.
@@ -179,17 +129,19 @@ fluid.defaults('spreadsheets.sheetsAPIClient', {
     members: {
         clientObject: null, // an authorized google API client object, filled with onCreate.impl
     },
-    // TODO: ask A whether refactoring to listeners is preferrable here
-    // as in a few lines down
-    invokers: {
-        getRange: 'spreadsheets.sheetsAPIClient.getRange', 
-        getRanges: 'spreadsheets.sheetsAPIClient.getRanges',
-        getSpreadsheet: 'spreadsheets.sheetsAPIClient.getSpreadsheet',
-        updateRange: 'spreadsheets.sheetsAPIClient.updateRange'
+    events: {
+        getRange: null,
+        getRanges: null,
+        getSpreadsheet: null,
+        updateRange: null
     },
     listeners: {
+        // TODO: authorized client probably needs to be a further component, which will attempt to create itself repeatedly until it has token
         'onCreate.impl': 'spreadsheets.sheetsAPIClient.createAuthorizedClient({that})',
-        // 'onRead.impl': 'spreadsheets.sheetsAPIClient.doRead',
+        'getRange.impl': 'spreadsheets.sheetsAPIClient.getRange',
+        'getRanges.impl': 'spreadsheet.sheetsAPIClient.getRanges',
+        'getSpreadsheet.impl': 'spreadsheet.sheetsAPIClient.getSpreadsheet',
+        'updateRange.impl': 'spreadsheet.sheetsAPIClient.updateRange'
     }
 });
 
