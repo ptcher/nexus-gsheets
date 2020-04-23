@@ -1,6 +1,18 @@
-// TODO: turn this into a proper test file using node-jqunit
+'use strict';
+
 var coordToA1 = require('../src/coordToA1');
-var fluid = fluid || require('infusion');
+var jqUnit = require('node-jqunit');
+
+jqUnit.module('coordToA1 tests')
+
+jqUnit.test('Coordinate conversion gives expected results', function () {
+    var i = 1;
+    for (var input in tests) {
+        var result = coordToA1(parseInt(input), i);
+        jqUnit.assertEquals('Conversion result equals expected', result, tests[input] + i.toString());
+        i++;
+    }
+});
 
 var tests = {
     1: 'A',
@@ -51,14 +63,3 @@ var tests = {
     18278: 'ZZZ',
     18279: 'AAAA'
 };
-
-for (let input in tests) {
-    let result = coordToA1(parseInt(input), 1);
-    if (result === tests[input] + '1') {
-        continue;
-    } else {
-        fluid.log(fluid.logLevel.FAIL, `coordToA1(${input}, ${1}) returns ${result}, when it should return ${tests[input]}1`);
-    }
-}
-
-fluid.log(fluid.logLevel.WARN, 'All tests pass');
