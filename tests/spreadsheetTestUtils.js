@@ -1,7 +1,7 @@
 'use strict';
 
 // TODO: clean up these different requires, ask what's appropriate, e.g. fluid.require vs require
-var fluid = require('infusion')
+var fluid = require('infusion'),
     jqUnit = fluid.require("node-jqunit");
 
 fluid.require('infusion-nexus');
@@ -9,19 +9,42 @@ require('../server/configs/spreadsheetGrades.js');
 
 fluid.registerNamespace('fluid.test.spreadsheets');
 
-// A mock grade that substitutes the google API object with one that returns test values
-// Note that while this allows us to test that the correct API calls are being made,
-// it does not currently allow us to test the authorization workflow
-fluid.defaults('fluid.test.spreadsheets.sheetsAPIClientMock', {
-gradeNames: ['spreadsheets.sheetsAPIClient'],
-listeners: {
-    'onCreate.createAuthorizedClient': 'fluid.test.spreadsheets.createAuthorizedClient({that})'
-}
-});
-
 fluid.test.spreadsheets.assertNoComponentAtPath = function (message, componentRoot, path) {
-jqUnit.assertFalse(message, fluid.nexus.containsComponent(componentRoot, path));
+    jqUnit.assertFalse(message, fluid.nexus.containsComponent(componentRoot, path));
 };
+
+fluid.test.spreadsheets.assertStatusCode = function (request, expectedStatusCode) {
+    var response = request.nativeResponse;
+    var read = response.read();
+    response.on('data', function (chunk) {
+        console.log('BODY: ' + chunk);
+    });
+    jqUnit.assertEquals("Response has status code " + expectedStatusCode, expectedStatusCode, response.statusCode);
+};
+
+fluid.test.spreadsheets.assertComponentModel = function (request, expectedModelContent) {
+
+    // these are what I would execute in a local context
+    var that = fluid.componentForPath("path");
+
+    var value = fluid.getForComponent(that, "model.thing.thing");
+
+    // it seems like for asynchronously fetched models, we either need to delay component construction messages or get their contents specifically via model binding
+    // I suspect the latter is more appropriate, considering that there could easily be legitimate contexts where we want to let the component hang around before the model reaches its final state.
+    // the first message is the model content
+};
+
+/* 
+ * A mock grade that substitutes the google API object with one that returns test values
+ * Note that while this allows us to test that the correct API calls are being made,
+ * it does not currently allow us to test the authorization workflow
+ **/
+fluid.defaults('fluid.test.spreadsheets.sheetsAPIClientMock', {
+    gradeNames: ['spreadsheets.sheetsAPIClient'],
+    listeners: {
+        'onCreate.createAuthorizedClient': 'fluid.test.spreadsheets.createAuthorizedClient({that})'
+    }
+});
 
 /*
  * Note: no test data should have more than 26 columns.
@@ -62,25 +85,26 @@ fluid.test.spreadsheets.testData = {
 };
 
 fluid.test.spreadsheets.createAuthorizedClient = function(that) {
-    var sheets = [];
-
-    for (var sheetTitle in fluid.test.spreadsheets.testData) {
-        sheets.push({
-            properties: {
-                title: sheetTitle,
-                gridProperties: {
-                    rowCount: 1000,
-                    columnCount: 26
-                }
-            }
-        });
-    }
 
     var getSpreadsheet = function ({spreadsheetId}) {
+        var sheets = [];
+
+        for (var sheetTitle in fluid.test.spreadsheets.testData[spreadhsheetId]) {
+            sheets.push({
+                properties: {
+                    title: sheetTitle,
+                    gridProperties: {
+                        rowCount: 1000,
+                        columnCount: 26
+                    }
+                }
+            });
+        }
+
         return new Promise(function (resolve, reject) {
             resolve({
-                spreadsheetId: spreadsheetId,
-                properties: {
+                data: {
+                    spreadsheetId: spreadsheetId,
                     sheets: sheets
                 }
             });
@@ -110,7 +134,7 @@ fluid.test.spreadsheets.createAuthorizedClient = function(that) {
 
     // note that these tests assume single-letter column numbers
     var getRange = function (mockSpreadsheet, range) {
-        var [sheetName, columnStart, columnEnd, rowStart, rowEnd] = interpretRange(range);
+        var {sheetName, columnStart, columnEnd, rowStart, rowEnd} = interpretRange(range);
 
         // look up the intervals in the mock spreadsheet, which stores them as 2D arrays
         var fullSheet = mockSpreadsheet[sheetName];
@@ -122,7 +146,7 @@ fluid.test.spreadsheets.createAuthorizedClient = function(that) {
     };
 
     var updateRange = function(mockSpreadsheet, range, values) {
-        var [sheetName, columnStart, columnEnd, rowStart, rowEnd] = interpretRange(range);
+        var {sheetName, columnStart, columnEnd, rowStart, rowEnd} = interpretRange(range);
 
         var sheet = mockSpreadsheet[sheetName];
 
@@ -144,7 +168,7 @@ fluid.test.spreadsheets.createAuthorizedClient = function(that) {
     var getValues = function ({spreadsheetId, range}) {
         return new Promise(function (resolve, reject) {
             resolve({
-                {
+                data: {
                     range: range,
                     majorDimensions: "ROWS",
                     values: getRange(fluid.test.spreadsheets.testData[spreadsheetId], range),
