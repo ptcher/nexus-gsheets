@@ -1,0 +1,14 @@
+{
+    "options": {
+        // override the default port of nexus
+        serverPort: 7081,
+        "distributeOptions": {
+            "portOverride": {
+                "record": "{kettle.config}.serverPort",
+                "target": "{that kettle.server}.options.port"
+            }
+        }
+    },
+    "require": "./spreadsheetGrades.js",
+    "mergeConfigs": ["%infusion-nexus/configs/fluid.nexus.config.json"]
+}

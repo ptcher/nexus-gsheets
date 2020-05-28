@@ -1,6 +1,6 @@
 var fs = require('fs');
 var {google} = require('googleapis');
-var config = require('../config.json');
+var config = require('./sheetsAPI.config.json');
 var fluid = fluid || require('infusion');
 var coordToA1 = require('./coordToA1');
 

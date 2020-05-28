@@ -96,6 +96,7 @@ fluid.defaults('spreadsheets.valueDisplay', {
 // I guess it could theoretically be done through a mixin grade, like
 // nexusClient.mirroredComponent
 // that might require a differentiation between local gradeNames and remote gradeNames
+// Antranig suggests using the Visible Nexus approach, where I set up a designated component root which represents that all of its descendants will be mirrored.
 
 // TODO: test the cell sub-component here by itself directly on a running Nexus server
 // does this imply I need a direct-translation thing that lets me do
