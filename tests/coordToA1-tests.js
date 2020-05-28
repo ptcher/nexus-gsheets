@@ -3,7 +3,7 @@
 var coordToA1 = require('../src/coordToA1');
 var jqUnit = require('node-jqunit');
 
-jqUnit.module('coordToA1 tests')
+jqUnit.module('coordToA1 tests');
 
 jqUnit.test('Coordinate conversion gives expected results', function () {
     var i = 1;
