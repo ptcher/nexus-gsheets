@@ -1,6 +1,7 @@
 var fs = require('fs');
-var {google} = require('googleapis');
-var config = require('./sheetsAPI.config.json');
+var path = require('path');
+var google = require('googleapis').google;
+var config = require('./configs/sheetsAPI.config.json');
 var fluid = fluid || require('infusion');
 var coordToA1 = require('./coordToA1');
 
@@ -16,7 +17,7 @@ var spreadsheets = fluid.registerNamespace('spreadsheets');
 module.exports = spreadsheets;
 
 // This logging function is used to trigger a breakpoint and get component tree state
-spreadsheets.debug = function(...messages) {
+spreadsheets.debug = function (...messages) {
     console.log(messages);
 };
 
@@ -107,7 +108,10 @@ spreadsheets.spreadsheet.processData = function (data) {
     var newModel = {};
     fluid.each(data.data.valueRanges, function ({range, values}) {
         var sheetName = range.split('!')[0];
-        newModel[sheetName] = values;
+        // If we want to add more information per sheet, it will go in this model object
+        newModel[sheetName] = {
+            values: values
+        };
     });
     return newModel;
 }
@@ -160,12 +164,12 @@ fluid.defaults('spreadsheets.sheetsAPIClient', {
  * @param {Object} that The component representing the client
  */
 spreadsheets.sheetsAPIClient.createAuthorizedClient = function(that) {
-    var credentials = fs.readFileSync(CREDENTIALS_PATH);
+    var credentials = fs.readFileSync(path.join(__dirname, 'configs', CREDENTIALS_PATH));
     credentials = JSON.parse(credentials);
     var { client_secret, client_id, redirect_uris } = credentials.installed;
     var oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
-    var token = fs.readFileSync(TOKEN_PATH);
+    var token = fs.readFileSync(path.join(__dirname, 'configs', TOKEN_PATH));
     if (token) {
         token = JSON.parse(token);
     } else { 

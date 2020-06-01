@@ -5,7 +5,8 @@
 var fluid = require('infusion'),
     kettle = require('kettle');
 
-require('./spreadsheetTestUtils');
+require('../src/server/test/sheetsAPIClientMock');
+require('../src/server/test/testUtils');
 
 kettle.loadTestingSupport();
 
@@ -57,9 +58,9 @@ fluid.tests.sheetsOnNexus.testDefs = [
     {
         name: "Operating spreadsheets through the Nexus",
         gradeNames: "kettle.test.testCaseHolder",
-        expect: 12, // TODO: update to match expected number of successful assertions
-        config: { // TODO: write a local config for operating tests, may not be necessary to distinguish it from the project config
-            configPath: "./server/configs",
+        expect: 4,
+        config: {
+            configPath: "./src/server/configs",
             configName: "nexusWithSpreadsheets.config"
         },
         // make all instantiated spreadsheets use the mocked apiClient
@@ -158,11 +159,9 @@ fluid.tests.sheetsOnNexus.testDefs = [
                 listener: "fluid.test.spreadsheets.assertStatusCode",
                 args: ["{getSpreadsheetDefaultsRequest}", 200]
             },
-            // { // I could simply implement this in terms of nexus APIs, i.e. verify that it responds that there's nothing there
-            // except I can't because there is no component GET ?!?!?!
-            // because there is no straightforward component getting function either 
-            // TODO: figure out how to perform this assertion without doing the componentRoot tagging thing
-            // ask A
+            // TODO: extend the Nexus with a GET /components/path.to.component endpoint
+            // allowing asserts like this one to be executed externally
+            // {
             //     func: "fluid.test.spreadsheets.assertNoComponentAtPath",
             //     args: [
             //         "Component not yet constructed",
@@ -170,39 +169,6 @@ fluid.tests.sheetsOnNexus.testDefs = [
             //         "{tests}.options.testComponentPath"
             //     ]
             // },
-            // BEGIN DEBUG
-            {
-                func: "{constructModelComponentRequest1}.send",
-                args: [{
-                    type: 'fluid.modelComponent',
-                    model: {
-                        value: 23
-                    }
-                }]
-            },
-            {
-                event: "{constructModelComponentRequest1}.events.onComplete",
-                listener: "fluid.test.spreadsheets.assertStatusCode",
-                args: ["{constructModelComponentRequest1}", 200]
-            },
-            {
-                func: "{bindModelComponentClient}.connect"
-            },
-            {
-                event: "{bindModelComponentClient}.events.onConnect",
-                listener: "jqUnit.assert",
-                args: []
-            },
-            {
-                event: "{bindModelComponentClient}.events.onReceiveMessage",   
-                listener: "jqUnit.assertDeepEq",
-                args: [
-                    "Received initial message with the state of the component's model",
-                    23,
-                    "{arguments}.0"
-                ]
-            },
-            // END DEBUG
             {
                 func: "{constructSpreadsheetRequest}.send",
                 args: [{
@@ -214,20 +180,6 @@ fluid.tests.sheetsOnNexus.testDefs = [
                 event: "{constructSpreadsheetRequest}.events.onComplete",
                 listener: "fluid.test.spreadsheets.assertStatusCode",
                 args: ["{constructSpreadsheetRequest}", 200]
-            },
-            {
-                func: "{constructModelComponentRequest2}.send",
-                args: [{
-                    type: 'fluid.modelComponent',
-                    model: {
-                        value: 67
-                    }
-                }]
-            },
-            {
-                event: "{constructModelComponentRequest2}.events.onComplete",
-                listener: "fluid.test.spreadsheets.assertStatusCode",
-                args: ["{constructModelComponentRequest2}", 200]
             },
             {
                 func: "{bindModelClient}.connect"
@@ -243,35 +195,33 @@ fluid.tests.sheetsOnNexus.testDefs = [
                 args: [
                     "Received initial message with the state of the component's model",
                     {
-                        sheet1: {
-                            values: [
-                                [
-                                    "Name",
-                                    "Title",
-                                    "Year"
-                                ],
-                                [
-                                    "Ursula Franklin",
-                                    "The Real World of Technology",
-                                    "1989"
-                                ],
-                                [
-                                    "Anna Lowenhaupt Tsing",
-                                    "The Mushroom at the End of the World",
-                                    "2015"
-                                ],
-                                [
-                                    "Sage LaTorra and Adam Koebel",
-                                    "Dungeon World",
-                                    "2016"
-                                ],
-                                [
-                                    "Ursula K. Le Guin",
-                                    "The Compass Rose",
-                                    "1982"
-                                ]
+                        values: [
+                            [
+                                "Name",
+                                "Title",
+                                "Year"
+                            ],
+                            [
+                                "Ursula Franklin",
+                                "The Real World of Technology",
+                                "1989"
+                            ],
+                            [
+                                "Anna Lowenhaupt Tsing",
+                                "The Mushroom at the End of the World",
+                                "2015"
+                            ],
+                            [
+                                "Sage LaTorra and Adam Koebel",
+                                "Dungeon World",
+                                "2016"
+                            ],
+                            [
+                                "Ursula K. Le Guin",
+                                "The Compass Rose",
+                                "1982"
                             ]
-                        }
+                        ]
                     },
                     "{arguments}.0"
                 ]

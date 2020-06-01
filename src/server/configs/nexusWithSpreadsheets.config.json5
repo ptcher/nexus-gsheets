@@ -9,6 +9,6 @@
             }
         }
     },
-    "require": "./spreadsheetGrades.js",
+    "require": "../spreadsheetGrades.js",
     "mergeConfigs": ["%infusion-nexus/configs/fluid.nexus.config.json"]
 }

@@ -1,38 +1,12 @@
 'use strict';
 
-// TODO: clean up these different requires, ask what's appropriate, e.g. fluid.require vs require
 var fluid = require('infusion'),
     jqUnit = fluid.require("node-jqunit");
 
 fluid.require('infusion-nexus');
-require('../server/configs/spreadsheetGrades.js');
+require('../spreadsheetGrades.js');
 
 fluid.registerNamespace('fluid.test.spreadsheets');
-
-fluid.test.spreadsheets.assertNoComponentAtPath = function (message, componentRoot, path) {
-    jqUnit.assertFalse(message, fluid.nexus.containsComponent(componentRoot, path));
-};
-
-fluid.test.spreadsheets.assertStatusCode = function (request, expectedStatusCode) {
-    var response = request.nativeResponse;
-    var read = response.read();
-    response.on('data', function (chunk) {
-        console.log('BODY: ' + chunk);
-    });
-    jqUnit.assertEquals("Response has status code " + expectedStatusCode, expectedStatusCode, response.statusCode);
-};
-
-fluid.test.spreadsheets.assertComponentModel = function (request, expectedModelContent) {
-
-    // these are what I would execute in a local context
-    var that = fluid.componentForPath("path");
-
-    var value = fluid.getForComponent(that, "model.thing.thing");
-
-    // it seems like for asynchronously fetched models, we either need to delay component construction messages or get their contents specifically via model binding
-    // I suspect the latter is more appropriate, considering that there could easily be legitimate contexts where we want to let the component hang around before the model reaches its final state.
-    // the first message is the model content
-};
 
 /* 
  * A mock grade that substitutes the google API object with one that returns test values
@@ -89,7 +63,8 @@ fluid.test.spreadsheets.createAuthorizedClient = function(that) {
     var getSpreadsheet = function ({spreadsheetId}) {
         var sheets = [];
 
-        for (var sheetTitle in fluid.test.spreadsheets.testData[spreadhsheetId]) {
+        // Error, spreadsheetId is not defined
+        for (var sheetTitle in fluid.test.spreadsheets.testData[spreadsheetId]) {
             sheets.push({
                 properties: {
                     title: sheetTitle,
@@ -137,8 +112,8 @@ fluid.test.spreadsheets.createAuthorizedClient = function(that) {
         var {sheetName, columnStart, columnEnd, rowStart, rowEnd} = interpretRange(range);
 
         // look up the intervals in the mock spreadsheet, which stores them as 2D arrays
-        var fullSheet = mockSpreadsheet[sheetName];
-        rangeInSheet = fullSheet.slice(rowStart, rowEnd + 1).map(function (row) {
+        var fullSheet = mockSpreadsheet[sheetName].values;
+        var rangeInSheet = fullSheet.slice(rowStart, rowEnd + 1).map(function (row) {
             return row.slice(columnStart, columnEnd + 1);
         });
 

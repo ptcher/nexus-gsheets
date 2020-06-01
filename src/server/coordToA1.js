@@ -4,7 +4,7 @@
  * @param {Number} row The 1-indexed row number.
  * @returns {String} The coordinate in A1 notation.
  */
-var coordToA1 = function(column, row) {
+var coordToA1 = function (column, row) {
     return columnNumberToLetter(column) + row;
 };
 
@@ -15,7 +15,7 @@ module.exports = coordToA1;
  * @param {Number} int 1-indexed column number.
  * @returns {String} The equivalent column identifier (One or more uppercase letters from the English alphabet) 
  */
-var columnNumberToLetter = function(int) {
+var columnNumberToLetter = function (int) {
     /*
      * The A1 column notation is not a conventional positional numeral system, 
      *  i.e. it is not base 26 with 0-p substituted for A-Z.
@@ -58,37 +58,39 @@ var columnNumberToLetter = function(int) {
  * @param {String} str A number in base 26.
  * @returns {String} The corresponding alphabetic number, with all 0s intact.
  */
-var base26ToAlphabetical = function(str) {
-    return str.replace(/\w/g, (char) => ({ 
-        '0': '0',
-        '1': 'A', 
-        '2': 'B',
-        '3': 'C',
-        '4': 'D',
-        '5': 'E', 
-        '6': 'F', 
-        '7': 'G',
-        '8': 'H',
-        '9': 'I', 
-        'a': 'J', 
-        'b': 'K',
-        'c': 'L', 
-        'd': 'M',
-        'e': 'N',
-        'f': 'O', 
-        'g': 'P', 
-        'h': 'Q',
-        'i': 'R', 
-        'j': 'S', 
-        'k': 'T',
-        'l': 'U', 
-        'm': 'V',
-        'n': 'W',
-        'o': 'X',
-        'p': 'Y', 
-        // last entry is technically unnecessary
-        'q': 'Z' 
-    })[char]);
+var base26ToAlphabetical = function (str) {
+    return str.replace(/\w/g, function (char) {
+        return {
+            '0': '0',
+            '1': 'A',
+            '2': 'B',
+            '3': 'C',
+            '4': 'D',
+            '5': 'E',
+            '6': 'F',
+            '7': 'G',
+            '8': 'H',
+            '9': 'I',
+            'a': 'J',
+            'b': 'K',
+            'c': 'L',
+            'd': 'M',
+            'e': 'N',
+            'f': 'O',
+            'g': 'P',
+            'h': 'Q',
+            'i': 'R',
+            'j': 'S',
+            'k': 'T',
+            'l': 'U',
+            'm': 'V',
+            'n': 'W',
+            'o': 'X',
+            'p': 'Y',
+            // last entry is technically unnecessary
+            'q': 'Z'
+        }[char]
+    });
 };
 
 /**
@@ -96,33 +98,35 @@ var base26ToAlphabetical = function(str) {
  * @param {String} str The string to decrement.
  * @returns {String} The decremented string.
  */
-var decrementAlphabetical = function(str) {
-    return str.replace(/\w/g, (char) => ({ 
-        'A': '0', 
-        'B': 'A',
-        'C': 'B',
-        'D': 'C',
-        'E': 'D', 
-        'F': 'E', 
-        'G': 'F',
-        'H': 'G',
-        'I': 'H', 
-        'J': 'I', 
-        'K': 'J',
-        'L': 'K', 
-        'M': 'L',
-        'N': 'M',
-        'O': 'N', 
-        'P': 'O', 
-        'Q': 'P',
-        'R': 'Q', 
-        'S': 'R', 
-        'T': 'S',
-        'U': 'T', 
-        'V': 'U',
-        'W': 'V',
-        'X': 'W',
-        'Y': 'X', 
-        'Z': 'Y'
-    })[char]);
+var decrementAlphabetical = function (str) {
+    return str.replace(/\w/g, function (char) {
+        return {
+            'A': '0',
+            'B': 'A',
+            'C': 'B',
+            'D': 'C',
+            'E': 'D',
+            'F': 'E',
+            'G': 'F',
+            'H': 'G',
+            'I': 'H',
+            'J': 'I',
+            'K': 'J',
+            'L': 'K',
+            'M': 'L',
+            'N': 'M',
+            'O': 'N',
+            'P': 'O',
+            'Q': 'P',
+            'R': 'Q',
+            'S': 'R',
+            'T': 'S',
+            'U': 'T',
+            'V': 'U',
+            'W': 'V',
+            'X': 'W',
+            'Y': 'X',
+            'Z': 'Y'
+        }[char];
+    });
 };

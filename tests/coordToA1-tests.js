@@ -1,6 +1,6 @@
 'use strict';
 
-var coordToA1 = require('../src/coordToA1');
+var coordToA1 = require('../src/server/coordToA1');
 var jqUnit = require('node-jqunit');
 
 jqUnit.module('coordToA1 tests');
