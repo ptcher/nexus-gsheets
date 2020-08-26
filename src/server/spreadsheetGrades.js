@@ -22,6 +22,38 @@ spreadsheets.debug = function (...messages) {
 };
 
 /**
+ * TODO: move this elsewhere
+ * handler for serving static pages
+ */
+fluid.defaults('spreadsheets.ui.handler', {
+    gradeNames: "kettle.request.http",
+    requestMiddleware: {
+        "static": {
+            middleware: "{server}.uiMiddleware"
+        }
+    },
+    invokers: {
+        handleRequest: {
+            funcName: "kettle.request.notFoundHandler"
+        }
+    }
+});
+
+fluid.defaults('spreadsheets.nodeModules.handler', {
+    gradeNames: "kettle.request.http",
+    requestMiddleware: {
+        "static": {
+            middleware: "{server}.nodeModulesMiddleware"
+        }
+    },
+    invokers: {
+        handleRequest: {
+            funcName: "kettle.request.notFoundHandler"
+        }
+    }
+});
+
+/**
  * component for reading and writing entire spreadsheets, located based on their id/URL
  */
 // TODO: rename to something like remoteSpreadsheetAvatar
