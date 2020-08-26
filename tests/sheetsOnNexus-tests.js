@@ -23,13 +23,23 @@ fluid.defaults("fluid.tests.sheetsOnNexus.getDefaults", {
     }
 });
 
-fluid.defaults("fluid.tests.sheetsOnNexus.constructSpreadsheet", {
+fluid.defaults("fluid.tests.sheetsOnNexus.readComponent", {
     gradeNames: "kettle.test.request.http",
     path: "/components/%componentPath",
     port: "{configuration}.options.serverPort",
-    method: "POST",
+    method: "GET",
     termMap: {
-        componentPath: "" // to be filled by test instances
+        componentPath: "to be filled by test instances"
+    }
+});
+
+fluid.defaults("fluid.tests.sheetsOnNexus.constructComponent", {
+    gradeNames: "kettle.test.request.http",
+    path: "/components/%componentPath",
+    port: "{configuration}.options.serverPort",
+    method: "PUT",
+    termMap: {
+        componentPath: "to be filled by test instances"
     }
 });
 
@@ -38,9 +48,8 @@ fluid.defaults("fluid.tests.sheetsOnNexus.bindModel", {
     path: "/bindModel/%componentPath/%modelPath",
     port: "{configuration}.options.serverPort",
     termMap: {
-        // to be filled by test instances
-        componentPath: "",
-        modelPath: ""
+        componentPath: "to be filled by test instances",
+        modelPath: "to be filled by test instances"
     }
 });
 
@@ -50,7 +59,7 @@ fluid.defaults("fluid.tests.sheetsOnNexus.destroyComponent", {
     port: "{configuration}.options.serverPort",
     method: "DELETE",
     termMap: {
-        componentPath: "" // to be filled by test instances
+        componentPath: "to be filled by test instances"
     }
 });
 
@@ -58,7 +67,7 @@ fluid.tests.sheetsOnNexus.testDefs = [
     {
         name: "Operating spreadsheets through the Nexus",
         gradeNames: "kettle.test.testCaseHolder",
-        expect: 4,
+        expect: 5,
         config: {
             configPath: "./src/server/configs",
             configName: "nexusWithSpreadsheets.config"
@@ -80,8 +89,16 @@ fluid.tests.sheetsOnNexus.testDefs = [
                     }
                 }
             },
+            readComponentRequest: {
+                type: "fluid.tests.sheetsOnNexus.readComponent",
+                options: {
+                    termMap: {
+                        componentPath: "firstSpreadsheet"
+                    }
+                }
+            },
             constructSpreadsheetRequest: {
-                type: "fluid.tests.sheetsOnNexus.constructSpreadsheet",
+                type: "fluid.tests.sheetsOnNexus.constructComponent",
                 options: {
                     termMap: {
                         componentPath: "firstSpreadsheet"
@@ -105,22 +122,6 @@ fluid.tests.sheetsOnNexus.testDefs = [
                     }
                 }
             },
-            constructModelComponentRequest1: {
-                type: "fluid.tests.sheetsOnNexus.constructSpreadsheet",
-                options: {
-                    termMap: {
-                        componentPath: "debugPath1"
-                    }
-                }
-            },
-            constructModelComponentRequest2: {
-                type: "fluid.tests.sheetsOnNexus.constructSpreadsheet",
-                options: {
-                    termMap: {
-                        componentPath: "debugPath2"
-                    }
-                }
-            },
             bindModelComponentClient: {
                 type: "fluid.tests.sheetsOnNexus.bindModel",
                 options: {
@@ -133,23 +134,15 @@ fluid.tests.sheetsOnNexus.testDefs = [
         },
         sequence: [
             /*
-            assert no component at path 1
-            create a component at path 1
-            verify expected value
-            bind a model to it
-            issue a change
-            verify that the update was called
-            verify expected value
-            delete the component
-            assert no component at path 1
-            create a component at path 1
-            verify expected value (with update)
-
-            // BELOW ARE NEXUS TESTS
-            assert no component at path 2
-            bind a model to it
-            create a component at path 2
+            TODO: issue a change
+            TODO: verify that the update was called
+            TODO: verify expected value
+            TODO: delete the component
+            TODO: assert no component at path 1
+            TODO: create a component at path 1
+            TODO: verify expected value (with update)
             */
+            // the spreadsheet grade is available
             {
                 func: "{getSpreadsheetDefaultsRequest}.send",
                 args: []
@@ -159,16 +152,17 @@ fluid.tests.sheetsOnNexus.testDefs = [
                 listener: "fluid.test.spreadsheets.assertStatusCode",
                 args: ["{getSpreadsheetDefaultsRequest}", 200]
             },
-            // TODO: extend the Nexus with a GET /components/path.to.component endpoint
-            // allowing asserts like this one to be executed externally
-            // {
-            //     func: "fluid.test.spreadsheets.assertNoComponentAtPath",
-            //     args: [
-            //         "Component not yet constructed",
-            //         "{fluid.tests.nexus.componentRoot}",
-            //         "{tests}.options.testComponentPath"
-            //     ]
-            // },
+            // there is no component at the test component path
+            {
+                func: "{readComponentRequest}.send",
+                args: []
+            },
+            {
+                event: "{readComponentRequest}.events.onComplete",
+                listener: "fluid.test.spreadsheets.assertStatusCode",
+                args: ["{readComponentRequest}", 404]
+            },
+            // spreadsheets can be constructed
             {
                 func: "{constructSpreadsheetRequest}.send",
                 args: [{
@@ -179,8 +173,9 @@ fluid.tests.sheetsOnNexus.testDefs = [
             {
                 event: "{constructSpreadsheetRequest}.events.onComplete",
                 listener: "fluid.test.spreadsheets.assertStatusCode",
-                args: ["{constructSpreadsheetRequest}", 200]
+                args: ["{constructSpreadsheetRequest}", 201]
             },
+            // spreadheets contain the expected data
             {
                 func: "{bindModelClient}.connect"
             },
@@ -195,33 +190,36 @@ fluid.tests.sheetsOnNexus.testDefs = [
                 args: [
                     "Received initial message with the state of the component's model",
                     {
-                        values: [
-                            [
-                                "Name",
-                                "Title",
-                                "Year"
-                            ],
-                            [
-                                "Ursula Franklin",
-                                "The Real World of Technology",
-                                "1989"
-                            ],
-                            [
-                                "Anna Lowenhaupt Tsing",
-                                "The Mushroom at the End of the World",
-                                "2015"
-                            ],
-                            [
-                                "Sage LaTorra and Adam Koebel",
-                                "Dungeon World",
-                                "2016"
-                            ],
-                            [
-                                "Ursula K. Le Guin",
-                                "The Compass Rose",
-                                "1982"
+                        type: "initModel",
+                        payload: {
+                            values: [
+                                [
+                                    "Name",
+                                    "Title",
+                                    "Year"
+                                ],
+                                [
+                                    "Ursula Franklin",
+                                    "The Real World of Technology",
+                                    "1989"
+                                ],
+                                [
+                                    "Anna Lowenhaupt Tsing",
+                                    "The Mushroom at the End of the World",
+                                    "2015"
+                                ],
+                                [
+                                    "Sage LaTorra and Adam Koebel",
+                                    "Dungeon World",
+                                    "2016"
+                                ],
+                                [
+                                    "Ursula K. Le Guin",
+                                    "The Compass Rose",
+                                    "1982"
+                                ]
                             ]
-                        ]
+                        }
                     },
                     "{arguments}.0"
                 ]
