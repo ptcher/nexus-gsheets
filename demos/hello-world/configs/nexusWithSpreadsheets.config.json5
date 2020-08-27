@@ -1,0 +1,67 @@
+{
+    "options": {
+        // override the default port of the nexus
+        "serverPort": 7081,
+        "distributeOptions": {
+            "portOverride": {
+                "record": "{kettle.config}.serverPort",
+                "target": "{that kettle.server}.options.port"
+            }
+        },
+        // serve static pages from the /ui/ directory
+        "components": {
+            "server": {
+                "type": "kettle.server",
+                "options": {
+                    "components": {
+                        "uiMiddleware": {
+                            "type": "kettle.middleware.static",
+                            "options": {
+                                "root": "./"
+                            }
+                        },
+                        "clientLibraryMiddleware": {
+                            "type": "kettle.middleware.static",
+                            "options": {
+                                "root": "../../src/client/"
+                            }
+                        },
+                        "nodeModulesMiddleware": {
+                            "type": "kettle.middleware.static",
+                            "options": {
+                                "root": "../../node_modules/"
+                            }
+                        },
+                        "app": {
+                            "type": "kettle.app",
+                            "options": {
+                                "requestHandlers": {
+                                    "uiHandler": {
+                                        "type": "spreadsheets.ui.handler",
+                                        "prefix": "/gsheets",
+                                        "route": "/*",
+                                        "method": "get"
+                                    },
+                                    "clientLibraryhandler": {
+                                        "type": "spreadsheets.clientLibrary.handler",
+                                        "prefix": "/lib",
+                                        "route": "/*",
+                                        "method": "get"
+                                    },
+                                    "nodeModulesHandler": {
+                                        "type": "spreadsheets.nodeModules.handler",
+                                        "prefix": "/node_modules",
+                                        "route": "/*",
+                                        "method": "get"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "require": "../../../src/server/spreadsheetGrades.js",
+    "mergeConfigs": ["%infusion-nexus/configs/fluid.nexus.config.json"]
+}

@@ -39,6 +39,20 @@ fluid.defaults('spreadsheets.ui.handler', {
     }
 });
 
+fluid.defaults("spreadsheets.clientLibrary.handler", {
+    gradeNames: "kettle.request.http",
+    requestMiddleware: {
+        "static": {
+            middleware: "{server}.clientLibraryMiddleware"
+        }
+    },
+    invokers: {
+        handleRequest: {
+            funcName: "kettle.request.notFoundHandler"
+        }
+    }
+});
+
 fluid.defaults('spreadsheets.nodeModules.handler', {
     gradeNames: "kettle.request.http",
     requestMiddleware: {
