@@ -50,7 +50,7 @@ fluid.defaults('spreadsheets.helloWorld.displayHello', {
     },
     invokers: {
         sayHello: {
-            funcName: 'spreadsheets.helloWorld.displayHello.displayJSON',
+            funcName: 'spreadsheets.helloWorld.displayHello.displayTable',
             args: ['{that}.model.message', '{that}.dom.messageArea']
         }
     }
@@ -58,6 +58,36 @@ fluid.defaults('spreadsheets.helloWorld.displayHello', {
 
 spreadsheets.helloWorld.displayHello.displayJSON = function (json, dom) {
     dom.html(JSON.stringify(json, null, 4));
+};
+
+spreadsheets.helloWorld.displayHello.displayTable = function (model, dom) {
+    // TODO: distinguish the first row as a header, give it position: sticky
+    // style the table according to the less terrible tables guide
+    var isHeaderRow = true;
+    // TODO: where do I get the sheet tabname I should look in?
+    var sheetName = "assessment_centre_locations";
+    // var sheetName = "Sheet1";
+    if (model[sheetName] !== undefined) {
+        var rows = model[sheetName].values;
+        var htmlTable = $("<table><thead><tr></tr></thead><tbody></tbody></table>");
+        for (var headerCell of rows[0]) {
+            var htmlHeaderCell = $("<th>").text(headerCell);
+            htmlTable.find("tr").append(htmlHeaderCell);
+        }
+
+        for (var i = 1; i < rows.length; i++) {
+            var row = rows[i];
+            var htmlRow = $("<tr>");
+            // TODO: put this in the page style
+            for (var cell of row) {
+                var htmlCell;
+                htmlCell = $("<td>").text(cell);
+                htmlRow.append(htmlCell);
+            };
+            htmlTable.find("tbody").append(htmlRow);
+        };
+        dom.append(htmlTable);
+    }
 };
 
 /**
@@ -109,7 +139,7 @@ var helloWorld = fluid.construct('helloWorld', {
         message: ''
     },
     modelRelay: {
-        source: '{that}.shadow.model.Sheet1',
+        source: '{that}.shadow.model',
         target: 'message',
         singleTransform: {
             type: 'fluid.transforms.identity'
@@ -126,7 +156,8 @@ var helloWorld = fluid.construct('helloWorld', {
                 remotePath: COMPONENT_PATH,
                 remoteConstructionRecord: {
                     type: 'spreadsheets.spreadsheet',
-                    spreadsheetId: '1B2769NqCW1yBlP_eT6kQ5iRBM1cbYyhB_0paDgNT6dk'
+                    spreadsheetId: '1N8__GHsyAmpjZ3ff0Fqx_S1fngO3jfQ-QtaWakYQd00'
+                    // spreadsheetId: '1B2769NqCW1yBlP_eT6kQ5iRBM1cbYyhB_0paDgNT6dk'
                 }
             }
         }

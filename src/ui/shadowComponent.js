@@ -4,6 +4,7 @@ var fluid = fluid || require('infusion');
 
 var spreadsheets = fluid.registerNamespace('spreadsheets');
 
+// FIXME: changing the spreadsheetId and re-constructing a shadowComponent does not cause the sheet to be reloaded when there is already a shadowed component at the component path
 // FIXME: the Nexus crashes on issuing updates to the remote
 // If I can get this component working, do I need something like constructNexusPeers?
 // I still need something in case another location, e.g. a sensor adapter, introduces a remote component that I want to mirror.
@@ -179,10 +180,11 @@ spreadsheets.shadowComponent.bindModel = function (that, nexusAddress, remotePat
             try {
                 // apply a change to the shadowComponent's model with the source 'bindModel'
                 that.applier.change('', JSON.parse(event.data).payload, 'ADD', 'bindModel');
-            } catch {
+            } catch (err) {
                 // initial messages are sometimes not valid JSON
                 // this maybe shouldn't happen?
                 // FIXME: 
+                debugger;
                 return;
             }
         };
