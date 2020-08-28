@@ -1,0 +1,31 @@
+body {
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 14px;
+}
+
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+    white-space: nowrap;
+}
+
+td {
+    vertical-align: top;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    border-bottom: 2px solid black;
+}
+
+td, th {
+    text-align: left;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+tbody tr:nth-child(even) {
+    background-color: lightgrey;
+}

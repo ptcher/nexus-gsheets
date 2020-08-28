@@ -23,13 +23,13 @@
                         "clientLibraryMiddleware": {
                             "type": "kettle.middleware.static",
                             "options": {
-                                "root": "../../src/client/"
+                                "root": "../src/client/"
                             }
                         },
                         "nodeModulesMiddleware": {
                             "type": "kettle.middleware.static",
                             "options": {
-                                "root": "../../node_modules/"
+                                "root": "../node_modules/"
                             }
                         },
                         "app": {
@@ -38,7 +38,7 @@
                                 "requestHandlers": {
                                     "uiHandler": {
                                         "type": "spreadsheets.ui.handler",
-                                        "prefix": "/gsheets",
+                                        "prefix": "/demos",
                                         "route": "/*",
                                         "method": "get"
                                     },
@@ -62,6 +62,6 @@
             }
         }
     },
-    "require": "../../../src/server/spreadsheetGrades.js",
+    "require": "../../src/server/spreadsheetGrades.js",
     "mergeConfigs": ["%infusion-nexus/configs/fluid.nexus.config.json"]
 }
