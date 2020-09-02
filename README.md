@@ -1,4 +1,4 @@
-# infusion-nexus-gsheets
+# nexus-gsheets
 A Nexus adapter for Google Sheets.
 
 Spreadsheets broadly, and Google Sheets in particular, are a lingua franca for both formal and informal data collection and analysis.
@@ -19,7 +19,7 @@ This is an imagined deployment of the Nexus with this adaptation.
 It implies that we are missing functionality in the Nexus API for mirroring (part of) the Nexus component tree in a browser Infusion instance.
 It also opens some questions about the practice of programming applications that intermix Infusion components and local-to-the-browser UI components.
 
-### Addressing spreadsheets
+### Addressing Google spreadsheets
 Google spreadsheets are adressed by a combination of a spreadsheetId, sheetName, and a range or coordinate in A1 notation.
 The spreadsheetId is the alphanumeric identifier found in the URL for a spreadsheet, e.g. in `https://docs.google.com/spreadsheets/d/1B2769NqCW1yBlP_eT6kQ5iRBM1cbYyhB_0paDgNT6dk/` the spreadsheetId is `1B2769NqCW1yBlP_eT6kQ5iRBM1cbYyhB_0paDgNT6dk`.
 The sheetName is the identifier of a single 'tab' within the spreadsheet. It can be set by the user. The default value for the single tab in a new spreadsheet is `Sheet1`.
@@ -40,12 +40,13 @@ In API functions, the sheetName and coordinate/range are combined in one string,
  - [x] read data from a spreadsheet
  - [x] make a config file defining aliases for sheets of interest, token location, credentials location
  - [x] write data to a spreadsheet
- - [ ] create a sheet in a Nexus component tree
- - [ ] create a super-basic browser-and-Nexus setup
+ - [x] create a sheet in a Nexus component tree
+ - [x] create a super-basic browser-and-Nexus setup
+ - [x] figure out how to package Nexus adapters as grades available to a Nexus instance on startup. Maybe copy Kettle's config functionality?
+ - [x] set up unit testing, including a test mock of the google sheets API client object. 
  - [ ] support interactive token creation
- - [ ] figure out how to package Nexus adapters as grades available to a Nexus instance on startup. Maybe copy Kettle's config functionality?
- - [ ] set up unit testing, including a test mock of the google sheets API client object. 
  - [ ] figure out how to distribute the demo. I assume it either needs to work with public sheets, or there should be a user dialog for setting up credentials and either providing a URL or naming the data to go in a sheet
+ - [ ] poll sheets for updates
 
 Do I depend on the nexus or not?
 If I want to start the Nexus server from here, yes.
@@ -53,8 +54,6 @@ That means starting a kettle server that hosts a component tree which may be man
 the existing demos don't actually depend on the nexus? They just assume one will be started elsewhere
 what is my ideal setup process?
 open the demo, possibly open a google spreadsheet
-
-It seems like we'd need to manually implement polling to get updates in response to sheet content changing.
 
 The goal is to integrate spreadsheets with each other and with other functionality.
 Sometimes we mediate this integration in interesting ways.
@@ -65,8 +64,8 @@ Sometimes we mediate this integration in interesting ways.
 
 ## what should be tested
  - [x] conversion from numerical coordinates to A1 notation
- - [ ] component models contain the expected results after creation
- - [ ] API calls to all endpoints are correctly formatted
+ - [x] component models contain the expected results after creation
+ - [x] API calls to all endpoints are correctly formatted
  - [ ] repeated reads work after changes in the 'remote' data?
  - [ ] model edits causes API writes
  - [ ] component creation does not cause API writes
@@ -82,9 +81,3 @@ We won't necessarily use a powerful implementation like that, but it may be insp
 We also need a diff function to check that a pinging spreadsheet has actually changed relative to the local I have.
 There's a fluid.model.diff function (see: https://github.com/amb26/infusion/blob/FLUID-6145/src/framework/core/js/DataBinding.js#L1584 )
 For reporting, we may want to use the google drive push notification API, where we can provide a public HTTP endpoint that gets notified on updates (see: https://developers.google.com/drive/api/v3/reference/changes/watch ).
-
-So directions to go right now
-     . create a public HTTP endpoint with kettle, maybe expose this at nexus.tcher.tech
-       this endpoint should trigger a re-read of all relevant, instantiated sheets
-     . create a local nexus and a client page that interact, following A's visibleNexus approach
-     . set up more comprehensive tests
